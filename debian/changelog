@@ -1,3 +1,10 @@
+gnome-tweak-tool (3.10.0-0blankon1) suroboyo; urgency=low
+
+  * New upstream release.
+  * 
+
+ -- Syai Mif <cak@localhost>  Thu, 17 Oct 2013 18:07:45 +0700
+
 gnome-tweak-tool (3.6.1-1blankon1) suroboyo; urgency=low
 
   * New upstream release
