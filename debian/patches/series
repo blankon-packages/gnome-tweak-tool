@@ -1,1 +1,2 @@
-#01_menu_category.patch
+01_menu_category.patch
+drop-gconf.patch

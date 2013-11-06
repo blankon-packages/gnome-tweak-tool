@@ -1,0 +1,189 @@
+Description: Drop gconf support since it's not even being used
+Author: Jeremy Bicha <jbicha@ubuntu.com>
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=704202
+Index: gnome-tweak-tool-3.8.0/configure.ac
+===================================================================
+--- gnome-tweak-tool-3.8.0.orig/configure.ac	2013-03-31 08:25:14.000000000 -0400
++++ gnome-tweak-tool-3.8.0/configure.ac	2013-07-14 12:07:23.761483695 -0400
+@@ -12,11 +12,6 @@
+ PKG_CHECK_MODULES([PYGOBJECT3], [pygobject-3.0 >= $PYGOBJECT_REQUIRED_VERSION],,
+     [PKG_CHECK_MODULES([PYGOBJECT2], [pygobject-2.0 >= 2.28.0])])
+ 
+-AC_CHECK_PROG(GCONFTOOL,gconftool-2,gconftool-2,no)
+-if test "$GCONFTOOL" = no ; then
+-	AC_MSG_ERROR(Cannot find gconftool-2)
+-fi
+-
+ IT_PROG_INTLTOOL([0.40.0])
+ AM_GNU_GETTEXT([external])
+ AM_GNU_GETTEXT_VERSION([0.17])
+Index: gnome-tweak-tool-3.8.0/gtweak/gconf.py
+===================================================================
+--- gnome-tweak-tool-3.8.0.orig/gtweak/gconf.py	2012-09-24 05:28:17.000000000 -0400
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,81 +0,0 @@
+-# This file is part of gnome-tweak-tool.
+-#
+-# Copyright (c) 2011 John Stowers
+-#
+-# gnome-tweak-tool is free software: you can redistribute it and/or modify
+-# it under the terms of the GNU General Public License as published by
+-# the Free Software Foundation, either version 3 of the License, or
+-# (at your option) any later version.
+-#
+-# gnome-tweak-tool is distributed in the hope that it will be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with gnome-tweak-tool.  If not, see <http://www.gnu.org/licenses/>.
+-
+-import logging
+-
+-import gtweak
+-import gtweak.utils
+-
+-from gi.repository import GConf
+-
+-class GConfSetting:
+-    def __init__(self, key, _type):
+-        self._key = key
+-        self._type = _type
+-
+-        assert(self._type in (str, bool))
+-
+-        self._client = GConf.Client.get_default()
+-        self._cmd_cache = {}
+-
+-    def _run_gconftool(self, command):
+-        if command not in self._cmd_cache:
+-            stdout, stderr, returncode = gtweak.utils.execute_subprocess(["gconftool-2", command, self._key], block=True)
+-            if returncode == 0:
+-                self._cmd_cache[command] = stdout.strip()
+-            else:
+-                self._cmd_cache[command] = "ERROR: %s" % stderr.strip()
+-
+-        logging.debug("Caching gconf: %s (%s)" % (self, command))
+-        return self._cmd_cache[command]
+-
+-    def schema_get_summary(self):
+-        return self._run_gconftool("--short-docs") or self._key.split("/")[-1].replace("_"," ").title()
+-        
+-    def schema_get_description(self):
+-        return self._run_gconftool("--long-docs")
+-
+-    def schema_get_all(self):
+-        return {"summary":self.schema_get_summary(), "description":self.schema_get_description()}
+-
+-    def get_value(self):
+-        if self._type == bool:
+-            return self._client.get_bool(self._key)
+-        elif self._type == str:
+-            return self._client.get_string(self._key)
+-        else:
+-            assert(False)
+-
+-    def set_value(self, value):
+-        if gtweak.VERBOSE:
+-            print "Change: %s -> %s" % (self._key, value)
+-
+-        if self._type == bool:
+-            self._client.set_bool(self._key, value)
+-        elif self._type == str:
+-            self._client.set_string(self._key, value)
+-        else:
+-            assert(False)
+-
+-    def __repr__(self):
+-        return "<gtweak.gconf.GConfSetting: %s>" % self._key
+-
+-if __name__ == "__main__":
+-    key = "/apps/metacity/general/compositing_manager"
+-    s = GConfSetting(key, bool)
+-    print s.schema_get_summary(), s.schema_get_description()
+-    print s.get_value()
+Index: gnome-tweak-tool-3.8.0/gtweak/utils.py
+===================================================================
+--- gnome-tweak-tool-3.8.0.orig/gtweak/utils.py	2012-09-24 05:28:17.000000000 -0400
++++ gnome-tweak-tool-3.8.0/gtweak/utils.py	2013-07-14 12:09:36.693478135 -0400
+@@ -23,7 +23,6 @@
+ 
+ import gtweak
+ from gtweak.gsettings import GSettingsSetting
+-from gtweak.gconf import GConfSetting
+ 
+ from gi.repository import GLib
+ 
+@@ -196,8 +195,6 @@
+                 if method == "GSettings":
+                     schema, key = value.split(" ")
+                     GSettingsSetting(schema).set_boolean(key, update)
+-                elif method == "GNOME":
+-                    GConfSetting(shema, bool).set_value(update)
+                 else:
+                     raise Exception("Method not supported")
+             except:
+Index: gnome-tweak-tool-3.8.0/gtweak/widgets.py
+===================================================================
+--- gnome-tweak-tool-3.8.0.orig/gtweak/widgets.py	2013-01-14 12:20:22.000000000 -0500
++++ gnome-tweak-tool-3.8.0/gtweak/widgets.py	2013-07-14 12:10:19.861476329 -0400
+@@ -23,7 +23,6 @@
+ from gtweak.tweakmodel import Tweak
+ from gtweak.gsettings import GSettingsSetting, GSettingsFakeSetting, GSettingsMissingError
+ from gtweak.gtksettings import GtkSettingsManager
+-from gtweak.gconf import GConfSetting
+ from gtweak.gshellwrapper import GnomeShellFactory
+ 
+ UI_BOX_SPACING = 4
+@@ -258,50 +257,6 @@
+             value = combo.get_model().get_value(_iter, 0)
+             self.settings.set_string(self.key_name, value)
+ 
+-class _GConfTweak(Tweak):
+-    def __init__(self, key_name, key_type, **options):
+-        self.gconf = GConfSetting(key_name, key_type)
+-        Tweak.__init__(self,
+-            options.get("summary",self.gconf.schema_get_summary()),
+-            options.get("description",self.gconf.schema_get_description()),
+-            **options)
+-
+-class GConfComboTweak(_GConfTweak):
+-    def __init__(self, key_name, key_type, key_options, **options):
+-        _GConfTweak.__init__(self, key_name, key_type, **options)
+-
+-        #check key_options is iterable
+-        #and if supplied, check it is a list of 2-tuples
+-        assert len(key_options) >= 0
+-        if len(key_options):
+-            assert len(key_options[0]) == 2
+-
+-        combo = build_combo_box_text(
+-            self.gconf.get_value(),
+-            *key_options)
+-        combo.connect('changed', self._on_combo_changed)
+-        self.widget = build_label_beside_widget(self.name, combo)
+-        self.widget_for_size_group = combo
+-
+-    def _on_combo_changed(self, combo):
+-        _iter = combo.get_active_iter()
+-        if _iter:
+-            value = combo.get_model().get_value(_iter, 0)
+-            self.gconf.set_value(value)
+-
+-class GConfFontButtonTweak(_GConfTweak):
+-    def __init__(self, key_name, key_type, **options):
+-        _GConfTweak.__init__(self, key_name, key_type, **options)
+-
+-        w = Gtk.FontButton()
+-        w.props.font_name = self.gconf.get_value()
+-        w.connect("notify::font-name", self._on_fontbutton_changed)
+-        self.widget = build_label_beside_widget(self.name, w)
+-        self.widget_for_size_group = w
+-
+-    def _on_fontbutton_changed(self, btn, param):
+-        self.gconf.set_value(btn.props.font_name)
+-
+ class FileChooserButton(Gtk.FileChooserButton):
+     def __init__(self, title, local_only, mimetypes):
+         Gtk.FileChooserButton.__init__(self, title=title)
