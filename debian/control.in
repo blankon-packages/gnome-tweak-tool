@@ -27,7 +27,7 @@ Depends: ${python:Depends},
          gnome-shell-common (>= 3.4),
          python-gi (>= 3.2.1),
          gir1.2-gtk-3.0 (>= 3.9.10),
-         gir1.2-gnomedesktop-3.0
+         gir1.2-gnomedesktop-3.0,
          gir1.2-soup-2.4
 Description: tool to adjust advanced configuration settings for GNOME
  GNOME Tweak Tool allows the adjustment of several advanced GNOME
