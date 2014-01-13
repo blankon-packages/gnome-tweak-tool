@@ -4,30 +4,31 @@ Priority: optional
 Maintainer: BlankOn Developers <BlankOn-dev@googlegroups.com>
 XSBC-Original-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>= 9),
-               dh-autoreconf,
+Build-Depends: debhelper (>= 8),
+			   dh-autoreconf,	
                cdbs (>= 0.4.41),
                gnome-pkg-tools,
-               gsettings-desktop-schemas-dev (>= 3.4.0),
+               gsettings-desktop-schemas-dev (>= 3.3.2),
+               libgtk-3-dev (>= 3.9.10),
                python-gi-dev (>= 3.2.1),
-               libgconf2-dev,
                intltool (>= 0.40.0),
                gettext (>= 0.17),
                python (>= 2.6.5)
-Standards-Version: 3.9.4
-Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/packages/unstable/gnome-tweak-tool
+Standards-Version: 3.9.3
+Vcs-Svn: svn://anonscm.debian.org/svn/pkg-gnome/packages/unstable/gnome-tweak-tool
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/packages/unstable/gnome-tweak-tool
-Homepage: https://wiki.gnome.org/GnomeTweakTool
+Homepage: http://live.gnome.org/GnomeTweakTool
 
 Package: gnome-tweak-tool
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
-         gsettings-desktop-schemas (>= 3.6),
+         gsettings-desktop-schemas (>= 3.3.2),
          gnome-shell-common (>= 3.4),
          python-gi (>= 3.2.1),
-         gir1.2-gtk-3.0,
+         gir1.2-gtk-3.0 (>= 3.9.10),
          gir1.2-gnomedesktop-3.0
+         gir1.2-soup-2.4
 Description: tool to adjust advanced configuration settings for GNOME
  GNOME Tweak Tool allows the adjustment of several advanced GNOME
  options that can't be configured in gnome-control-center.
